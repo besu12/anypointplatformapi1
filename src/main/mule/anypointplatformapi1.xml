@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="ece67907-6449-409f-853d-292aeab3a2af" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="anypointplatformapi1Flow" doc:id="cd38981d-6158-4ed8-b44f-c4c44d009d4f" >
+		<http:listener doc:name="Listener" doc:id="5e3ab2f0-152f-42b1-9607-4826e63b3859" config-ref="HTTP_Listener_config" path="/test1"/>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="68665245-71d9-4bdc-bbbb-1eff550d35ec" variableName="credential"/>
+		<http:request method="POST" doc:name="Request" doc:id="3ebbd13c-6806-41ef-95fd-736e27a7197c" url="https://anypoint.mulesoft.com/accounts/login">
+			<http:body ><![CDATA[#[vars.credential]]]></http:body>
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"" : ""
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="22e1bb24-99ef-4aba-a94a-042ea634903c" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="token" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="304e200c-4e71-415e-b866-bd322b505dd0" url="https://anypoint.mulesoft.com/accounts/api/profile">
+			<http:body ><![CDATA[#[vars.token]]]></http:body>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="01f28cb2-d695-4071-8fcd-a704d8bd782d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="f497f080-e27e-46ca-aec9-8c5adb867610" message="#[payload]"/>
+	</flow>
+</mule>
